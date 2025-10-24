@@ -160,10 +160,24 @@ class Level1 extends BaseLevel {
     // Enemies & hazards
     this.spawnEnemy(400,520); this.spawnFlyingEnemy(600,200);
     this.spawnSpike(350,560); this.spawnSpike(450,560);
-  }
-  update(){ super.update(); if(this.player.x>1500) this.scene.start('Level2'); }
-}
 
+    this.coins.children.iterate(c => {
+      this.tweens.add({
+        targets: c,
+        y: c.y - 10,      // move up 10 pixels
+        duration: 800,     // 0.8 seconds
+        yoyo: true,        // come back down
+        repeat: -1,        // loop forever
+        ease: 'Sine.easeInOut'
+      });
+    });
+  }
+
+  update(){ 
+    super.update(); 
+    if(this.player.x>1500) this.scene.start('Level2'); 
+  }
+}
 // ---- Level 2 ----
 class Level2 extends BaseLevel {
   constructor(){ super('Level2'); }
