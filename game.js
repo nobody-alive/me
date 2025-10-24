@@ -10,7 +10,6 @@ const config = {
   scene: [BootScene, Level1, Level2, GameOverScene]
 };
 
-const game = new Phaser.Game(config);
 
 // ---- Boot Scene ----
 class BootScene extends Phaser.Scene {
@@ -212,6 +211,7 @@ class Level2 extends BaseLevel {
       this.add.text(300,250,'You Win!',{fontSize:'48px',fill:'#fff'});
       this.player.setVelocity(0,0);
       this.scene.pause();
+      const game = new Phaser.Game(config);
     }
   }
 }
