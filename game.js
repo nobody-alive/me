@@ -11,7 +11,7 @@ class BootScene extends Phaser.Scene {
     this.load.spritesheet('player','https://i.imgur.com/8QHMP5v.png',{ frameWidth:32, frameHeight:48 });
     this.load.image('enemy','https://i.imgur.com/Z6XjD3H.png');
     this.load.image('flyingEnemy','https://i.imgur.com/T0FIScV.png'); 
-    this.load.image('coin','https://i.imgur.com/O8c3Uuq.png');
+    this.load.image('coin', 'https://i.imgur.com/wO6xM8M.png');
     this.load.image('powerup','https://i.imgur.com/Y6gKzQp.png');
     this.load.image('spike','https://i.imgur.com/2lG1k0c.png');
     this.load.image('boss','https://i.imgur.com/CEfM2vC.png');
