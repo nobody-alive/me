@@ -146,6 +146,7 @@ class BaseLevel extends Phaser.Scene {
 // ---- Level 1 ----
 class Level1 extends BaseLevel {
   constructor(){ super('Level1'); }
+  
   create(){ 
     super.create();
     // Extra platforms
@@ -154,20 +155,25 @@ class Level1 extends BaseLevel {
     this.spawnMovingPlatform(400,250,50);
 
     // Coins & powerups
-    this.spawnCoin(150,300); this.spawnCoin(300,200); this.spawnCoin(500,150);
+    this.spawnCoin(150,300); 
+    this.spawnCoin(300,200); 
+    this.spawnCoin(500,150);
     this.spawnPowerup(700,500,'tripleJump');
 
     // Enemies & hazards
-    this.spawnEnemy(400,520); this.spawnFlyingEnemy(600,200);
-    this.spawnSpike(350,560); this.spawnSpike(450,560);
+    this.spawnEnemy(400,520);
+    this.spawnFlyingEnemy(600,200);
+    this.spawnSpike(350,560);
+    this.spawnSpike(450,560);
 
+    // Tween coins to float
     this.coins.children.iterate(c => {
       this.tweens.add({
         targets: c,
-        y: c.y - 10,      // move up 10 pixels
-        duration: 800,     // 0.8 seconds
-        yoyo: true,        // come back down
-        repeat: -1,        // loop forever
+        y: c.y - 10,
+        duration: 800,
+        yoyo: true,
+        repeat: -1,
         ease: 'Sine.easeInOut'
       });
     });
@@ -178,21 +184,45 @@ class Level1 extends BaseLevel {
     if(this.player.x>1500) this.scene.start('Level2'); 
   }
 }
+
 // ---- Level 2 ----
 class Level2 extends BaseLevel {
   constructor(){ super('Level2'); }
+  
   create(){ 
     super.create();
-    this.platforms.create(500,400,'platform'); this.platforms.create(300,300,'platform'); this.platforms.create(700,250,'platform');
+
+    // Platforms
+    this.platforms.create(500,400,'platform');
+    this.platforms.create(300,300,'platform');
+    this.platforms.create(700,250,'platform');
     this.spawnMovingPlatform(600,350,-50);
 
-    this.spawnCoin(200,200); this.spawnCoin(400,150); this.spawnCoin(600,100);
+    // Coins & powerups
+    this.spawnCoin(200,200); 
+    this.spawnCoin(400,150); 
+    this.spawnCoin(600,100);
     this.spawnPowerup(750,200,'dash');
 
-    this.spawnEnemy(350,520); this.spawnFlyingEnemy(550,250); this.spawnFlyingEnemy(700,150);
+    // Tween coins to float
+    this.coins.children.iterate(c => {
+      this.tweens.add({
+        targets: c,
+        y: c.y - 10,
+        duration: 800,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    });
+
+    // Enemies
+    this.spawnEnemy(350,520); 
+    this.spawnFlyingEnemy(550,250); 
+    this.spawnFlyingEnemy(700,150);
 
     // Boss
-    this.boss=this.physics.add.sprite(1400,400,'boss'); 
+    this.boss = this.physics.add.sprite(1400,400,'boss'); 
     this.boss.setImmovable(true); 
     this.physics.add.collider(this.boss,this.platforms); 
     this.physics.add.collider(this.player,this.boss,()=>{ this.player.damage(); });
@@ -201,13 +231,13 @@ class Level2 extends BaseLevel {
     this.time.addEvent({
       delay:2000,
       callback:()=>{ 
-        // if velocity is 0, start moving left; otherwise invert direction
         const vx = (this.boss.body.velocity.x === 0) ? -100 : -this.boss.body.velocity.x;
         this.boss.setVelocityX(vx);
       },
       loop:true
     });
   }
+
   update(){ 
     super.update(); 
     if(this.player.x>1500){
@@ -217,6 +247,7 @@ class Level2 extends BaseLevel {
     }
   }
 }
+
 
 // ---- Game Over ----
 class GameOverScene extends Phaser.Scene {
