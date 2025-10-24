@@ -62,7 +62,7 @@ class BaseLevel extends Phaser.Scene {
     this.platforms=this.physics.add.staticGroup();
     this.platforms.create(400,580,'platform').setScale(2).refreshBody();
     this.movingPlatforms=this.physics.add.group();
-    this.coins=this.physics.add.group();
+    this.coins=this.physics.add.group({ allowGravity: false, immovable: true });
     this.powerups=this.physics.add.group();
     this.enemies=this.physics.add.group();
     this.flyingEnemies=this.physics.add.group();
