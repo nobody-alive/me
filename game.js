@@ -211,7 +211,6 @@ class Level2 extends BaseLevel {
       this.add.text(300,250,'You Win!',{fontSize:'48px',fill:'#fff'});
       this.player.setVelocity(0,0);
       this.scene.pause();
-      const game = new Phaser.Game(config);
     }
   }
 }
@@ -225,3 +224,16 @@ class GameOverScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-SPACE',()=>{ this.scene.start('Level1'); });
   }
 }
+
+const config = {
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  physics: {
+    default: 'arcade',
+    arcade: { gravity: { y: 1000 }, debug: false }
+  },
+  scene: [BootScene, Level1, Level2, GameOverScene]
+};
+
+const game = new Phaser.Game(config);
