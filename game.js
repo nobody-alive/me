@@ -159,18 +159,24 @@ class Level1 extends BaseLevel {
   create(){ 
     super.create();
 
+    // Moving platform
     this.spawnMovingPlatform(400,250,50);
 
+    // Coins
     this.spawnCoin(150,300);
     this.spawnCoin(300,200);
     this.spawnCoin(500,150);
+
+    // Powerups
     this.spawnPowerup(700,500,'tripleJump');
 
+    // Enemies & hazards
     this.spawnEnemy(400,520);
     this.spawnFlyingEnemy(600,200);
     this.spawnSpike(350,560);
     this.spawnSpike(450,560);
 
+    // Floating coin tween
     this.coins.children.iterate(c => {
       this.tweens.add({
         targets: c,
@@ -181,13 +187,32 @@ class Level1 extends BaseLevel {
         ease: 'Sine.easeInOut'
       });
     });
+
+    // Total coins counter
+    this.totalCoins = this.coins.getChildren().length;
+
+    // Coin collection with level check
+    this.physics.add.overlap(this.player, this.coins, (player, coin) => {
+      coin.destroy();
+      this.score += 10;
+      this.scoreText.setText('Score: ' + this.score);
+
+      // If all coins collected, go to Level2
+      if (this.coins.countActive(true) === 0) {
+        // Optional: message before transitioning
+        this.add.text(this.player.x - 50, this.player.y - 50, 'All coins collected!', 
+          { fontSize: '24px', fill: '#fff' }).setScrollFactor(0).setDepth(10);
+
+        this.time.delayedCall(1000, () => this.scene.start('Level2'));
+      }
+    });
   }
 
   update(){
     super.update();
-    if(this.player.x>1500) this.scene.start('Level2'); 
   }
 }
+
 
 // ---- Level 2 ----
 class Level2 extends BaseLevel {
