@@ -8,10 +8,10 @@ class BootScene extends Phaser.Scene {
     }
 }
 
-// ---- Player Class ----
+// ---- Player ----
 class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
-        super(scene, x, y, null);
+        super(scene, x, y);
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setSize(32, 48);
@@ -20,8 +20,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.health = 3;
         this.maxJumps = 2;
         this.jumpCount = 0;
-        this.canDash = true;
-        this.dashSpeed = 600;
         this.lastDamageTime = 0;
     }
 
@@ -49,15 +47,15 @@ class BaseLevel extends Phaser.Scene {
     constructor(key) { super(key); }
 
     create() {
+        // Groups
         this.platforms = this.physics.add.staticGroup();
         this.movingPlatforms = this.physics.add.group({ allowGravity: false, immovable: true });
         this.coins = this.physics.add.staticGroup();
         this.enemies = this.physics.add.group({ allowGravity: true, collideWorldBounds: true });
 
+        // Player
         this.player = new Player(this, 100, 500);
         this.cursors = this.input.keyboard.createCursorKeys();
-        this.dashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
-        this.dashCooldown = 500;
 
         // Colliders
         this.physics.add.collider(this.player, this.platforms);
@@ -103,20 +101,22 @@ class BaseLevel extends Phaser.Scene {
     spawnCoin(x, y, size = 20, color = 0xffff00) {
         const coin = this.add.rectangle(x, y, size, size, color);
         this.coins.add(coin);
-        this.physics.add.existing(coin, true); // static
+        this.physics.add.existing(coin, true);
+
         this.physics.add.overlap(this.player, coin, (p, c) => {
             c.destroy();
             this.score += 10;
             this.scoreText.setText('Score: ' + this.score);
 
-            // Move to next level if no coins left
+            // Level change if all coins collected
             if (this.coins.countActive(true) === 0) {
                 this.time.delayedCall(500, () => {
-                    const nextLevel = this.scene.key === 'Level1' ? 'Level2' : 'Level1';
-                    this.scene.start(nextLevel);
+                    const next = this.scene.key === 'Level1' ? 'Level2' : 'Level1';
+                    this.scene.start(next);
                 });
             }
         });
+
         return coin;
     }
 
@@ -124,7 +124,6 @@ class BaseLevel extends Phaser.Scene {
         const enemy = this.add.rectangle(x, y, width, height, color);
         this.physics.add.existing(enemy);
         enemy.body.setCollideWorldBounds(true);
-        enemy.body.setBounce(1);
         enemy.speed = 100;
         this.enemies.add(enemy);
         return enemy;
@@ -140,11 +139,11 @@ class BaseLevel extends Phaser.Scene {
                 const dirX = this.player.x > e.x ? 1 : -1;
                 const dirY = this.player.y > e.y ? 1 : -1;
                 e.body.setVelocityX(dirX * e.speed);
-                e.body.setVelocityY(dirY * e.speed * 0.5); // slower vertically
+                e.body.setVelocityY(dirY * e.speed * 0.5);
             }
         });
 
-        // Move moving platforms
+        // Moving platforms
         this.movingPlatforms.children.iterate(p => {
             if (p.x >= 700 || p.x <= 100) p.body.velocity.x *= -1;
         });
@@ -177,7 +176,7 @@ class Level2 extends BaseLevel {
 
     create() {
         super.create();
-        this.spawnPlatform(400, 580, 800, 40); // floor
+        this.spawnPlatform(400, 580, 800, 40);
         this.spawnPlatform(500, 400, 100, 20);
         this.spawnPlatform(300, 300, 100, 20);
         this.spawnMovingPlatform(600, 350, -50);
