@@ -3,22 +3,24 @@
 // ---- Boot Scene ----
 class BootScene extends Phaser.Scene {
   constructor(){ super('Boot'); }
-  preload(){
-    // Assets 
-   this.load.image('bg1','https://i.imgur.com/3eQ1Z7g.png');
-this.load.image('bg2','https://i.imgur.com/Fj8Dpr2.png');
-this.load.image('platform','https://i.imgur.com/x2tXQ0A.png'); 
-this.load.spritesheet('player','https://i.imgur.com/8QHMP5v.png',{ frameWidth:32, frameHeight:48 });
-this.load.image('enemy','https://i.imgur.com/Z6XjD3H.png');
-this.load.image('flyingEnemy','https://i.imgur.com/T0FIScV.png'); 
-this.load.image('coin', 'https://i.imgur.com/wO6xM8M.png');
-this.load.image('powerup','https://i.imgur.com/Y6gKzQp.png');
-this.load.image('spike','https://i.imgur.com/2lG1k0c.png');
-this.load.image('boss','https://i.imgur.com/CEfM2vC.png');
-this.load.image('portal','https://i.imgur.com/4u7JvQz.png');
 
+  preload(){
+    this.load.image('bg1','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/skies/space3.png');
+    this.load.image('bg2','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/skies/deep-space.jpg');
+    this.load.image('platform','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/sprites/platform.png');
+    this.load.spritesheet('player','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/sprites/dude.png',{ frameWidth:32, frameHeight:48 });
+    this.load.image('enemy','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/sprites/ufo.png');
+    this.load.image('flyingEnemy','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/sprites/alien.png');
+    this.load.image('coin','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/sprites/coin.png');
+    this.load.image('powerup','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/sprites/star.png');
+    this.load.image('spike','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/sprites/spike.png');
+    this.load.image('boss','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/sprites/boss.png');
+    this.load.image('portal','https://cdn.jsdelivr.net/gh/photonstorm/phaser3-examples/public/assets/sprites/blue_ball.png');
   }
-  create(){ this.scene.start('Level1'); }
+
+  create(){
+    this.scene.start('Level1');
+  }
 }
 
 // ---- Player Class ----
@@ -48,7 +50,8 @@ class Player extends Phaser.Physics.Arcade.Sprite {
   }
   damage(){ 
     this.health--; 
-    if(this.health<=0) this.scene.start('GameOverScene'); 
+    if(this.health<=0) this.scene.scene.start('GameOver');
+
   }
 }
 
