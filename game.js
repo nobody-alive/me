@@ -1,9 +1,8 @@
-// Phaser 3 Adventure - Rectangle Version
+// Phaser 3 Adventure - Rectangle Version (Fixed Physics)
 
 // ---- Boot Scene ----
 class BootScene extends Phaser.Scene {
   constructor() { super('Boot'); }
-
   create() {
     this.add.text(200, 250, 'Click to Start Game', { fontSize: '32px', fill: '#fff' });
     this.input.once('pointerdown', () => this.scene.start('Level1'));
@@ -40,7 +39,6 @@ class Player extends Phaser.Physics.Arcade.Sprite {
       this.setVelocityY(-400);
       this.jumpCount++;
     }
-
     if (this.body.onFloor()) this.jumpCount = 0;
   }
 }
@@ -59,14 +57,9 @@ class BaseLevel extends Phaser.Scene {
     // Player
     this.player = new Player(this, 100, 500);
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.dashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
-    this.dashCooldown = 500;
 
-    // Collisions
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.player, this.movingPlatforms);
-    this.physics.add.collider(this.enemies, this.platforms);
-    this.physics.add.collider(this.enemies, this.movingPlatforms);
 
     // Score / Health
     this.score = 0;
@@ -82,14 +75,11 @@ class BaseLevel extends Phaser.Scene {
         this.time.delayedCall(500, () => this.scene.start('Level2'));
       }
     });
-
-    // Enemy collision
-    this.physics.add.collider(this.player, this.enemies, () => this.player.damage());
   }
 
   spawnPlatform(x, y, width = 100, height = 20, color = 0x00ff00) {
     const plat = this.add.rectangle(x, y, width, height, color);
-    this.physics.add.existing(plat, true); // static
+    this.physics.add.existing(plat, true);
     this.platforms.add(plat);
     return plat;
   }
@@ -107,7 +97,7 @@ class BaseLevel extends Phaser.Scene {
   spawnCoin(x, y, size = 20, color = 0xffff00) {
     const coin = this.add.rectangle(x, y, size, size, color);
     this.physics.add.existing(coin);
-    coin.body.setAllowGravity(false);
+    coin.body.setAllowGravity(false); // no falling
     coin.body.setImmovable(true);
     this.coins.add(coin);
     return coin;
@@ -116,6 +106,7 @@ class BaseLevel extends Phaser.Scene {
   spawnEnemy(x, y, width = 32, height = 32, color = 0xff0000, speed = 50) {
     const enemy = this.add.rectangle(x, y, width, height, color);
     this.physics.add.existing(enemy);
+    enemy.body.setAllowGravity(false); // don't fall
     enemy.body.setCollideWorldBounds(true);
     enemy.body.setBounce(1);
     enemy.body.setVelocityX(speed);
