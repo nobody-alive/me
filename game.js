@@ -1,37 +1,22 @@
-// Phaser 3 Adventure - Cleaned Version
+// Phaser 3 Adventure - Rectangles Version
 
 // ---- Boot Scene ----
 class BootScene extends Phaser.Scene {
     constructor(){ super('Boot'); }
-
-    preload(){
-        // CORS-safe placeholder assets from Phaser Labs
-        this.load.image('bg1','https://labs.phaser.io/assets/skies/space3.png');
-        this.load.image('bg2','https://labs.phaser.io/assets/skies/deep-space.jpg');
-        this.load.image('platform','https://labs.phaser.io/assets/sprites/platform.png'); 
-        this.load.spritesheet('player','https://labs.phaser.io/assets/sprites/phaser-dude.png',{ frameWidth:32, frameHeight:48 });
-        this.load.image('enemy','https://labs.phaser.io/assets/sprites/red_ball.png');
-        this.load.image('flyingEnemy','https://labs.phaser.io/assets/sprites/blue_ball.png'); 
-        this.load.image('coin','https://labs.phaser.io/assets/sprites/coin.png');
-        this.load.image('powerup','https://labs.phaser.io/assets/sprites/purple_ball.png');
-        this.load.image('spike','https://labs.phaser.io/assets/sprites/spike.png');
-        this.load.image('boss','https://labs.phaser.io/assets/sprites/firstaid.png');
-    }
-
     create(){
         this.add.text(200,250,'Click to Start Game',{fontSize:'32px',fill:'#fff'});
-        this.input.once('pointerdown', () => {
-            this.scene.start('Level1');
-        });
+        this.input.once('pointerdown', () => this.scene.start('Level1'));
     }
 }
 
 // ---- Player Class ----
 class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene,x,y){
-        super(scene,x,y,'player');
+        super(scene,x,y,null);
         scene.add.existing(this);
         scene.physics.add.existing(this);
+        this.setSize(32,48); // rectangle size
+        this.setTint(0x00ff00); // green player
         this.setCollideWorldBounds(true);
         this.jumps = 0;
         this.maxJumps = 3;
@@ -67,16 +52,13 @@ class BaseLevel extends Phaser.Scene {
     constructor(key){ super(key); }
 
     create(){
-        // Background
-        this.bg1 = this.add.tileSprite(400,300,800,600,'bg1').setScrollFactor(0);
-        this.bg2 = this.add.tileSprite(400,300,800,600,'bg2').setScrollFactor(0);
+        // Background color
+        this.cameras.main.setBackgroundColor('#222');
 
         // Groups
         this.platforms = this.physics.add.staticGroup();
-        this.platforms.create(400,580,'platform').setScale(2).refreshBody();
-
         this.movingPlatforms = this.physics.add.group();
-        this.coins = this.physics.add.group({ allowGravity: false, immovable: true });
+        this.coins = this.physics.add.group({ allowGravity:false, immovable:true });
         this.powerups = this.physics.add.group();
         this.enemies = this.physics.add.group();
         this.flyingEnemies = this.physics.add.group();
@@ -97,10 +79,9 @@ class BaseLevel extends Phaser.Scene {
         this.physics.add.collider(this.flyingEnemies,this.movingPlatforms);
 
         this.physics.add.overlap(this.player,this.coins,this.collectCoin,null,this);
-        this.physics.add.overlap(this.player,this.powerups,this.collectPowerup,null,this);
-        this.physics.add.collider(this.player,this.enemies,()=>{ this.player.damage(); });
-        this.physics.add.collider(this.player,this.flyingEnemies,()=>{ this.player.damage(); });
-        this.physics.add.collider(this.player,this.spikes,()=>{ this.player.damage(); });
+        this.physics.add.collider(this.player,this.enemies,()=>this.player.damage());
+        this.physics.add.collider(this.player,this.flyingEnemies,()=>this.player.damage());
+        this.physics.add.collider(this.player,this.spikes,()=>this.player.damage());
 
         // Camera
         this.cameras.main.startFollow(this.player);
@@ -125,41 +106,52 @@ class BaseLevel extends Phaser.Scene {
         }
     }
 
-    collectPowerup(player,pu){
-        pu.destroy();
-        if(pu.type === 'tripleJump') this.player.maxJumps = 5;
-        if(pu.type === 'dash') this.player.dashSpeed = 1000;
+    spawnPlatform(x,y,width,height,color=0x888888){ 
+        const plat = this.add.rectangle(x,y,width,height,color);
+        this.physics.add.existing(plat,true);
+        this.platforms.add(plat);
+        return plat;
     }
 
-    spawnMovingPlatform(x,y,vx){ 
-        const plat = this.physics.add.sprite(x,y,'platform').setImmovable(true).setVelocityX(vx);
-        plat.body.allowGravity = false;
-        this.movingPlatforms.add(plat); 
+    spawnMovingPlatform(x,y,width,height,vx,color=0x888888){
+        const plat = this.add.rectangle(x,y,width,height,color);
+        this.physics.add.existing(plat);
+        plat.body.setImmovable(true).setVelocityX(vx).allowGravity = false;
+        this.movingPlatforms.add(plat);
     }
 
-    spawnEnemy(x,y){ 
-        const enemy = this.enemies.create(x,y,'enemy'); 
-        enemy.setVelocityX(50);
-        enemy.setCollideWorldBounds(true);
-        enemy.setBounce(1); 
+    spawnCoin(x,y){
+        const coin = this.add.rectangle(x,y,20,20,0xffff00);
+        this.physics.add.existing(coin);
+        coin.body.setAllowGravity(false);
+        coin.body.setImmovable(true);
+        this.coins.add(coin);
     }
 
-    spawnFlyingEnemy(x,y){ 
-        const fe = this.flyingEnemies.create(x,y,'flyingEnemy'); 
-        fe.setVelocityX(80);
-        fe.setCollideWorldBounds(true);
-        fe.setBounce(1); 
+    spawnEnemy(x,y){
+        const e = this.add.rectangle(x,y,32,32,0xff0000);
+        this.physics.add.existing(e);
+        e.body.setCollideWorldBounds(true).setBounce(1).setVelocityX(50);
+        this.enemies.add(e);
     }
 
-    spawnCoin(x,y){ this.coins.create(x,y,'coin'); }
-    spawnPowerup(x,y,type){ const pu = this.powerups.create(x,y,'powerup'); pu.type = type; }
-    spawnSpike(x,y){ this.spikes.create(x,y,'spike'); }
+    spawnFlyingEnemy(x,y){
+        const fe = this.add.rectangle(x,y,32,32,0x0000ff);
+        this.physics.add.existing(fe);
+        fe.body.setCollideWorldBounds(true).setBounce(1).setVelocityX(80);
+        this.flyingEnemies.add(fe);
+    }
+
+    spawnSpike(x,y,width=32,height=32){
+        const s = this.add.rectangle(x,y,width,height,0xff00ff);
+        this.physics.add.existing(s,true);
+        this.spikes.add(s);
+    }
 
     update(){
-        this.bg1.tilePositionX = this.cameras.main.scrollX * 0.3;
-        this.bg2.tilePositionX = this.cameras.main.scrollX * 0.6;
-
-        this.movingPlatforms.children.iterate(p=>{ if(p.x>=700||p.x<=100) p.body.velocity.x*=-1; });
+        this.movingPlatforms.children.iterate(p=>{
+            if(p.x>=700||p.x<=100) p.body.velocity.x*=-1;
+        });
 
         this.player.update(this.cursors);
 
@@ -177,79 +169,54 @@ class BaseLevel extends Phaser.Scene {
 // ---- Level 1 ----
 class Level1 extends BaseLevel {
     constructor(){ super('Level1'); }
-
-    create(){ 
+    create(){
         super.create();
 
-        // Moving platform
-        this.spawnMovingPlatform(400,250,50);
+        // Platforms
+        this.spawnPlatform(400,580,800,32);
+        this.spawnMovingPlatform(400,250,100,20,50);
 
         // Coins
         this.spawnCoin(150,300);
         this.spawnCoin(300,200);
         this.spawnCoin(500,150);
 
-        // Powerups
-        this.spawnPowerup(700,500,'tripleJump');
-
-        // Enemies & hazards
+        // Enemies & spikes
         this.spawnEnemy(400,520);
         this.spawnFlyingEnemy(600,200);
         this.spawnSpike(350,560);
         this.spawnSpike(450,560);
-
-        // Floating coin tween
-        this.coins.children.iterate(c => {
-            this.tweens.add({
-                targets: c,
-                y: c.y - 10,
-                duration: 800,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut'
-            });
-        });
     }
 }
 
 // ---- Level 2 ----
 class Level2 extends BaseLevel {
     constructor(){ super('Level2'); }
-
-    create(){ 
+    create(){
         super.create();
-
-        this.platforms.create(500,400,'platform');
-        this.platforms.create(300,300,'platform');
-        this.platforms.create(700,250,'platform');
-        this.spawnMovingPlatform(600,350,-50);
+        this.spawnPlatform(500,400,100,20);
+        this.spawnPlatform(300,300,100,20);
+        this.spawnPlatform(700,250,100,20);
+        this.spawnMovingPlatform(600,350,100,20,-50);
 
         this.spawnCoin(200,200);
         this.spawnCoin(400,150);
         this.spawnCoin(600,100);
-        this.spawnPowerup(750,200,'dash');
 
         this.spawnEnemy(350,520);
         this.spawnFlyingEnemy(550,250);
         this.spawnFlyingEnemy(700,150);
 
-        this.boss = this.physics.add.sprite(1400,400,'boss');
-        this.boss.setImmovable(true); 
-        this.physics.add.collider(this.boss,this.platforms); 
-        this.physics.add.collider(this.player,this.boss,()=>{ this.player.damage(); });
-
-        this.time.addEvent({
-            delay:2000,
-            callback:()=>{ 
-                const vx = (this.boss.body.velocity.x === 0) ? -100 : -this.boss.body.velocity.x;
-                this.boss.setVelocityX(vx);
-            },
-            loop:true
-        });
+        // Boss
+        const boss = this.add.rectangle(1400,400,64,64,0xffffff);
+        this.physics.add.existing(boss);
+        boss.body.setImmovable(true);
+        this.physics.add.collider(boss,this.platforms);
+        this.physics.add.collider(this.player,boss,()=>this.player.damage());
     }
 
     update(){ 
-        super.update(); 
+        super.update();
         if(this.player.x > 1500) this.scene.start('GameOverScene');
     }
 }
@@ -260,7 +227,7 @@ class GameOverScene extends Phaser.Scene {
     create(){
         this.add.text(250,250,'Game Over',{fontSize:'48px',fill:'#f00'});
         this.add.text(200,320,'Press SPACE to restart',{fontSize:'24px',fill:'#fff'});
-        this.input.keyboard.on('keydown-SPACE',()=>{ this.scene.start('Level1'); });
+        this.input.keyboard.on('keydown-SPACE',()=> this.scene.start('Level1'));
     }
 }
 
@@ -269,10 +236,7 @@ const config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
-    physics: {
-        default: 'arcade',
-        arcade: { gravity: { y: 1000 }, debug: false }
-    },
+    physics: { default:'arcade', arcade:{ gravity:{y:1000}, debug:false }},
     scene: [BootScene, Level1, Level2, GameOverScene]
 };
 
