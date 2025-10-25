@@ -1,10 +1,10 @@
-// Phaser 3 Adventure - v2
+// Phaser 3 Adventure - Portal Version
 
 // ---- Boot Scene ----
 class BootScene extends Phaser.Scene {
   constructor(){ super('Boot'); }
   preload(){
-    // Assets (loaded via URLs so you can host only these 2 files on GitHub)
+    // Assets (you can host just this file and these links on GitHub)
     this.load.image('bg1','https://i.imgur.com/3eQ1Z7g.png');
     this.load.image('bg2','https://i.imgur.com/Fj8Dpr2.png');
     this.load.image('platform','https://i.imgur.com/x2tXQ0A.png'); 
@@ -15,6 +15,7 @@ class BootScene extends Phaser.Scene {
     this.load.image('powerup','https://i.imgur.com/Y6gKzQp.png');
     this.load.image('spike','https://i.imgur.com/2lG1k0c.png');
     this.load.image('boss','https://i.imgur.com/CEfM2vC.png');
+    this.load.image('portal','https://i.imgur.com/4u7JvQz.png'); // 🌀 Portal image
   }
   create(){ this.scene.start('Level1'); }
 }
@@ -166,7 +167,7 @@ class Level1 extends BaseLevel {
     this.spawnSpike(350,560);
     this.spawnSpike(450,560);
 
-    // Tween coins to float
+    // Floating coins
     this.coins.children.iterate(c => {
       this.tweens.add({
         targets: c,
@@ -177,11 +178,29 @@ class Level1 extends BaseLevel {
         ease: 'Sine.easeInOut'
       });
     });
+
+    // ---- Portal to Level 2 ----
+    this.portal = this.physics.add.sprite(1500, 520, 'portal');
+    this.portal.body.allowGravity = false;
+
+    this.physics.add.overlap(this.player, this.portal, () => {
+      this.cameras.main.flash(500, 255, 255, 255);
+      this.scene.start('Level2');
+    });
+
+    // Portal animation
+    this.tweens.add({
+      targets: this.portal,
+      scale: 1.1,
+      duration: 600,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
   }
 
   update(){ 
     super.update(); 
-    if(this.player.x>1500) this.scene.start('Level2'); 
   }
 }
 
@@ -204,7 +223,7 @@ class Level2 extends BaseLevel {
     this.spawnCoin(600,100);
     this.spawnPowerup(750,200,'dash');
 
-    // Tween coins to float
+    // Floating coins
     this.coins.children.iterate(c => {
       this.tweens.add({
         targets: c,
@@ -227,7 +246,7 @@ class Level2 extends BaseLevel {
     this.physics.add.collider(this.boss,this.platforms); 
     this.physics.add.collider(this.player,this.boss,()=>{ this.player.damage(); });
 
-    // Boss simple movement pattern
+    // Boss simple movement
     this.time.addEvent({
       delay:2000,
       callback:()=>{ 
@@ -247,7 +266,6 @@ class Level2 extends BaseLevel {
     }
   }
 }
-
 
 // ---- Game Over ----
 class GameOverScene extends Phaser.Scene {
