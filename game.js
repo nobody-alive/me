@@ -54,7 +54,6 @@ class BaseLevel extends Phaser.Scene {
     this.movingPlatforms = this.physics.add.group();
     this.coins = this.physics.add.group();
     this.enemies = this.physics.add.group();
-    this.spikes = this.physics.add.group();
 
     this.player = new Player(this, 100, 500);
     this.cursors = this.input.keyboard.createCursorKeys();
