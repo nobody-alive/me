@@ -1,4 +1,4 @@
-// Phaser 3 Adventure - Rectangles Version
+// Phaser 3 Adventure - Pure Rectangles
 
 // ---- Boot Scene ----
 class BootScene extends Phaser.Scene {
@@ -15,11 +15,11 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         super(scene,x,y,null);
         scene.add.existing(this);
         scene.physics.add.existing(this);
-        this.setSize(32,48); // rectangle size
+        this.setSize(32,32);
         this.setTint(0x00ff00); // green player
         this.setCollideWorldBounds(true);
         this.jumps = 0;
-        this.maxJumps = 3;
+        this.maxJumps = 2;
         this.dashSpeed = 600;
         this.canDash = true;
         this.health = 3;
@@ -27,7 +27,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
     update(cursors){
         const speed = 200;
-        const jumpForce = -450;
+        const jumpForce = -400;
 
         if(cursors.left.isDown) this.setVelocityX(-speed);
         else if(cursors.right.isDown) this.setVelocityX(speed);
@@ -41,9 +41,9 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         if(this.body.onFloor()) this.jumps = 0;
     }
 
-    damage(){ 
-        this.health--; 
-        if(this.health <= 0) this.scene.scene.start('GameOverScene'); 
+    damage(){
+        this.health--;
+        if(this.health <= 0) this.scene.scene.start('GameOverScene');
     }
 }
 
@@ -52,42 +52,31 @@ class BaseLevel extends Phaser.Scene {
     constructor(key){ super(key); }
 
     create(){
-        // Background color
-        this.cameras.main.setBackgroundColor('#222');
+        this.cameras.main.setBackgroundColor('#000'); // black background
 
-        // Groups
         this.platforms = this.physics.add.staticGroup();
         this.movingPlatforms = this.physics.add.group();
         this.coins = this.physics.add.group({ allowGravity:false, immovable:true });
-        this.powerups = this.physics.add.group();
         this.enemies = this.physics.add.group();
-        this.flyingEnemies = this.physics.add.group();
         this.spikes = this.physics.add.group();
 
-        // Player
         this.player = new Player(this,100,500);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.dashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
         this.dashCooldown = 500;
 
-        // Colliders
         this.physics.add.collider(this.player,this.platforms);
         this.physics.add.collider(this.player,this.movingPlatforms);
         this.physics.add.collider(this.enemies,this.platforms);
-        this.physics.add.collider(this.flyingEnemies,this.platforms);
         this.physics.add.collider(this.enemies,this.movingPlatforms);
-        this.physics.add.collider(this.flyingEnemies,this.movingPlatforms);
 
         this.physics.add.overlap(this.player,this.coins,this.collectCoin,null,this);
         this.physics.add.collider(this.player,this.enemies,()=>this.player.damage());
-        this.physics.add.collider(this.player,this.flyingEnemies,()=>this.player.damage());
         this.physics.add.collider(this.player,this.spikes,()=>this.player.damage());
 
-        // Camera
         this.cameras.main.startFollow(this.player);
         this.cameras.main.setBounds(0,0,1600,600);
 
-        // HUD
         this.score = 0;
         this.scoreText = this.add.text(16,16,'Score: 0',{fontSize:'24px',fill:'#fff'}).setScrollFactor(0);
         this.healthText = this.add.text(16,50,'Health: '+this.player.health,{fontSize:'24px',fill:'#fff'}).setScrollFactor(0);
@@ -99,22 +88,21 @@ class BaseLevel extends Phaser.Scene {
         this.scoreText.setText('Score: ' + this.score);
 
         if(this.coins.countActive(true) === 0){
-            this.add.text(this.player.x - 50, this.player.y - 50, 'All coins collected!', 
-            { fontSize: '24px', fill: '#fff' }).setScrollFactor(0).setDepth(10);
+            this.add.text(this.player.x - 50,this.player.y - 50,'All coins collected!',
+            {fontSize:'24px',fill:'#fff'}).setScrollFactor(0).setDepth(10);
 
-            this.time.delayedCall(1000, () => this.scene.start('Level2'));
+            this.time.delayedCall(1000,()=>this.scene.start('Level2'));
         }
     }
 
-    spawnPlatform(x,y,width,height,color=0x888888){ 
-        const plat = this.add.rectangle(x,y,width,height,color);
+    spawnPlatform(x,y,width=100,height=20){
+        const plat = this.add.rectangle(x,y,width,height,0xffffff);
         this.physics.add.existing(plat,true);
         this.platforms.add(plat);
-        return plat;
     }
 
-    spawnMovingPlatform(x,y,width,height,vx,color=0x888888){
-        const plat = this.add.rectangle(x,y,width,height,color);
+    spawnMovingPlatform(x,y,width=100,height=20,vx=50){
+        const plat = this.add.rectangle(x,y,width,height,0xffffff);
         this.physics.add.existing(plat);
         plat.body.setImmovable(true).setVelocityX(vx).allowGravity = false;
         this.movingPlatforms.add(plat);
@@ -133,13 +121,6 @@ class BaseLevel extends Phaser.Scene {
         this.physics.add.existing(e);
         e.body.setCollideWorldBounds(true).setBounce(1).setVelocityX(50);
         this.enemies.add(e);
-    }
-
-    spawnFlyingEnemy(x,y){
-        const fe = this.add.rectangle(x,y,32,32,0x0000ff);
-        this.physics.add.existing(fe);
-        fe.body.setCollideWorldBounds(true).setBounce(1).setVelocityX(80);
-        this.flyingEnemies.add(fe);
     }
 
     spawnSpike(x,y,width=32,height=32){
@@ -171,19 +152,12 @@ class Level1 extends BaseLevel {
     constructor(){ super('Level1'); }
     create(){
         super.create();
-
-        // Platforms
         this.spawnPlatform(400,580,800,32);
         this.spawnMovingPlatform(400,250,100,20,50);
-
-        // Coins
         this.spawnCoin(150,300);
         this.spawnCoin(300,200);
         this.spawnCoin(500,150);
-
-        // Enemies & spikes
         this.spawnEnemy(400,520);
-        this.spawnFlyingEnemy(600,200);
         this.spawnSpike(350,560);
         this.spawnSpike(450,560);
     }
@@ -198,16 +172,11 @@ class Level2 extends BaseLevel {
         this.spawnPlatform(300,300,100,20);
         this.spawnPlatform(700,250,100,20);
         this.spawnMovingPlatform(600,350,100,20,-50);
-
         this.spawnCoin(200,200);
         this.spawnCoin(400,150);
         this.spawnCoin(600,100);
-
         this.spawnEnemy(350,520);
-        this.spawnFlyingEnemy(550,250);
-        this.spawnFlyingEnemy(700,150);
 
-        // Boss
         const boss = this.add.rectangle(1400,400,64,64,0xffffff);
         this.physics.add.existing(boss);
         boss.body.setImmovable(true);
@@ -215,7 +184,7 @@ class Level2 extends BaseLevel {
         this.physics.add.collider(this.player,boss,()=>this.player.damage());
     }
 
-    update(){ 
+    update(){
         super.update();
         if(this.player.x > 1500) this.scene.start('GameOverScene');
     }
