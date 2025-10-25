@@ -1,4 +1,4 @@
-// Phaser 3 Adventure - Portal Version
+// Phaser 3 Adventure - Portal Version (cleaned original)
 
 // ---- Boot Scene ----
 class BootScene extends Phaser.Scene {
@@ -36,27 +36,41 @@ class Player extends Phaser.Physics.Arcade.Sprite {
     this.canDash = true;
     this.health = 3;
   }
+
   update(cursors){
     const speed = 200;
     const jumpForce = -450;
-    if(cursors.left.isDown) this.setVelocityX(-speed);
-    else if(cursors.right.isDown) this.setVelocityX(speed);
-    else this.setVelocityX(0);
+    if(cursors.left.isDown) {
+      this.setVelocityX(-speed);
+    } else if(cursors.right.isDown) {
+      this.setVelocityX(speed);
+    } else {
+      this.setVelocityX(0);
+    }
+
     if(Phaser.Input.Keyboard.JustDown(cursors.up) && this.jumps < this.maxJumps){
       this.setVelocityY(jumpForce);
       this.jumps++;
     }
-    if(this.body.onFloor()) this.jumps = 0;
+
+    // use blocked.down (more reliable) instead of onFloor()
+    if(this.body && this.body.blocked && this.body.blocked.down) {
+      this.jumps = 0;
+    }
   }
+
   damage(){ 
     this.health--; 
-    if(this.health<=0) this.scene.scene.start('GameOver');
+    // original used 'GameOver' which doesn't match your GameOverScene name;
+    // switch to the actual scene id to avoid runtime errors
+    if(this.health <= 0) this.scene.scene.start('GameOverScene');
   }
 }
 
 // ---- Base Level ----
 class BaseLevel extends Phaser.Scene {
   constructor(key){ super(key); }
+
   create(){
     this.bg1=this.add.tileSprite(400,300,800,600,'bg1').setScrollFactor(0);
     this.bg2=this.add.tileSprite(400,300,800,600,'bg2').setScrollFactor(0);
@@ -82,7 +96,12 @@ class BaseLevel extends Phaser.Scene {
     this.physics.add.collider(this.enemies,this.movingPlatforms);
     this.physics.add.collider(this.flyingEnemies,this.movingPlatforms);
 
-    this.physics.add.overlap(this.player,this.coins,(p,c)=>{ c.destroy(); this.score+=10; this.scoreText.setText('Score: '+this.score); });
+    this.physics.add.overlap(this.player,this.coins,(p,c)=>{
+      c.destroy();
+      this.score+=10;
+      this.scoreText.setText('Score: '+this.score);
+    });
+
     this.physics.add.overlap(this.player,this.powerups,(p,pu)=>{
       pu.destroy();
       if(pu.type==='tripleJump') this.player.maxJumps=5;
@@ -121,14 +140,23 @@ class BaseLevel extends Phaser.Scene {
   update(){
     this.bg1.tilePositionX=this.cameras.main.scrollX*0.3;
     this.bg2.tilePositionX=this.cameras.main.scrollX*0.6;
-    this.movingPlatforms.children.iterate(p=>{ if(p.x>=700||p.x<=100) p.body.velocity.x*=-1; });
+
+    this.movingPlatforms.children.iterate(p=>{
+      if(p.x>=700 || p.x<=100) {
+        // flip velocity reliably
+        if(p.body && p.body.velocity) p.body.velocity.x *= -1;
+      }
+    });
+
     this.player.update(this.cursors);
-    if(Phaser.Input.Keyboard.JustDown(this.dashKey)&&this.player.canDash){ 
-      const dir=this.cursors.left.isDown?-1:(this.cursors.right.isDown?1:1); 
+
+    if(Phaser.Input.Keyboard.JustDown(this.dashKey) && this.player.canDash){ 
+      const dir = this.cursors.left.isDown ? -1 : (this.cursors.right.isDown ? 1 : 1);
       this.player.setVelocityX(dir*this.player.dashSpeed); 
       this.player.canDash=false; 
-      this.time.delayedCall(this.dashCooldown,()=>this.player.canDash=true); 
+      this.time.delayedCall(this.dashCooldown, ()=> this.player.canDash = true );
     }
+
     this.healthText.setText('Health: '+this.player.health);
   }
 }
