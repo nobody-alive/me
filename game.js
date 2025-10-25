@@ -1,83 +1,36 @@
+// Phaser 3 Adventure - v2
+
+
+
+// ---- Boot Scene ----
+
 class BootScene extends Phaser.Scene {
 
   constructor(){ super('Boot'); }
 
   preload(){
 
-
-    // Assets (you can host just this file and these links on GitHub)
-
+    // Assets (loaded via URLs so you can host only these 2 files on GitHub)
 
     this.load.image('bg1','https://i.imgur.com/3eQ1Z7g.png');
 
-
     this.load.image('bg2','https://i.imgur.com/Fj8Dpr2.png');
-
 
     this.load.image('platform','https://i.imgur.com/x2tXQ0A.png'); 
 
-
     this.load.spritesheet('player','https://i.imgur.com/8QHMP5v.png',{ frameWidth:32, frameHeight:48 });
-
 
     this.load.image('enemy','https://i.imgur.com/Z6XjD3H.png');
 
-
     this.load.image('flyingEnemy','https://i.imgur.com/T0FIScV.png'); 
-
 
     this.load.image('coin', 'https://i.imgur.com/wO6xM8M.png');
 
-
     this.load.image('powerup','https://i.imgur.com/Y6gKzQp.png');
-
 
     this.load.image('spike','https://i.imgur.com/2lG1k0c.png');
 
-
     this.load.image('boss','https://i.imgur.com/CEfM2vC.png');
-
-
-    this.load.image('portal','https://i.imgur.com/4u7JvQz.png'); // 🌀 Portal image
-
-
-    // Assets 
-
-
-   this.load.image('bg1','https://i.imgur.com/3eQ1Z7g.png');
-
-
-this.load.image('bg2','https://i.imgur.com/Fj8Dpr2.png');
-
-
-this.load.image('platform','https://i.imgur.com/x2tXQ0A.png'); 
-
-
-this.load.spritesheet('player','https://i.imgur.com/8QHMP5v.png',{ frameWidth:32, frameHeight:48 });
-
-
-this.load.image('enemy','https://i.imgur.com/Z6XjD3H.png');
-
-
-this.load.image('flyingEnemy','https://i.imgur.com/T0FIScV.png'); 
-
-
-this.load.image('coin', 'https://i.imgur.com/wO6xM8M.png');
-
-
-this.load.image('powerup','https://i.imgur.com/Y6gKzQp.png');
-
-
-this.load.image('spike','https://i.imgur.com/2lG1k0c.png');
-
-
-this.load.image('boss','https://i.imgur.com/CEfM2vC.png');
-
-
-this.load.image('portal','https://i.imgur.com/4u7JvQz.png');
-
-
-
 
   }
 
@@ -342,6 +295,7 @@ class Level1 extends BaseLevel {
   constructor(){ super('Level1'); }
 
 
+  
 
   create(){ 
 
@@ -349,9 +303,7 @@ class Level1 extends BaseLevel {
 
     // Extra platforms
 
-    this.platforms.create(600,450,'platform');
-
-    this.platforms.create(200,350,'platform');
+@@ -154,20 +155,25 @@
 
     this.spawnMovingPlatform(400,250,50);
 
@@ -359,9 +311,15 @@ class Level1 extends BaseLevel {
 
     // Coins & powerups
 
+
+    this.spawnCoin(150,300); this.spawnCoin(300,200); this.spawnCoin(500,150);
+
+
     this.spawnCoin(150,300); 
 
+
     this.spawnCoin(300,200); 
+
 
     this.spawnCoin(500,150);
 
@@ -371,17 +329,28 @@ class Level1 extends BaseLevel {
 
     // Enemies & hazards
 
+
+    this.spawnEnemy(400,520); this.spawnFlyingEnemy(600,200);
+
+
+    this.spawnSpike(350,560); this.spawnSpike(450,560);
+
+
     this.spawnEnemy(400,520);
+
 
     this.spawnFlyingEnemy(600,200);
 
+
     this.spawnSpike(350,560);
+
 
     this.spawnSpike(450,560);
 
 
 
-    // Floating coins
+
+    // Tween coins to float
 
     this.coins.children.iterate(c => {
 
@@ -389,11 +358,27 @@ class Level1 extends BaseLevel {
 
         targets: c,
 
+
+        y: c.y - 10,      // move up 10 pixels
+
+
+        duration: 800,     // 0.8 seconds
+
+
+        yoyo: true,        // come back down
+
+
+        repeat: -1,        // loop forever
+
+
         y: c.y - 10,
+
 
         duration: 800,
 
+
         yoyo: true,
+
 
         repeat: -1,
 
@@ -403,55 +388,14 @@ class Level1 extends BaseLevel {
 
     });
 
+@@ -178,21 +184,45 @@
 
-
-    // ---- Portal to Level 2 ----
-
-    this.portal = this.physics.add.sprite(1500, 520, 'portal');
-
-    this.portal.body.allowGravity = false;
-
-
-
-    this.physics.add.overlap(this.player, this.portal, () => {
-
-      this.cameras.main.flash(500, 255, 255, 255);
-
-      this.scene.start('Level2');
-
-    });
-
-
-
-    // Portal animation
-
-    this.tweens.add({
-
-      targets: this.portal,
-
-      scale: 1.1,
-
-      duration: 600,
-
-      yoyo: true,
-
-      repeat: -1,
-
-      ease: 'Sine.easeInOut'
-
-    });
-
-  }
-
-
-
-  update(){ 
-
-    super.update(); 
+    if(this.player.x>1500) this.scene.start('Level2'); 
 
   }
 
 }
+
 
 
 
@@ -462,18 +406,27 @@ class Level2 extends BaseLevel {
   constructor(){ super('Level2'); }
 
 
+  
 
   create(){ 
 
     super.create();
 
 
+    this.platforms.create(500,400,'platform'); this.platforms.create(300,300,'platform'); this.platforms.create(700,250,'platform');
+
+
+
+
 
     // Platforms
 
+
     this.platforms.create(500,400,'platform');
 
+
     this.platforms.create(300,300,'platform');
+
 
     this.platforms.create(700,250,'platform');
 
@@ -481,11 +434,18 @@ class Level2 extends BaseLevel {
 
 
 
+
+    this.spawnCoin(200,200); this.spawnCoin(400,150); this.spawnCoin(600,100);
+
+
     // Coins & powerups
+
 
     this.spawnCoin(200,200); 
 
+
     this.spawnCoin(400,150); 
+
 
     this.spawnCoin(600,100);
 
@@ -493,41 +453,64 @@ class Level2 extends BaseLevel {
 
 
 
-    // Floating coins
+
+    this.spawnEnemy(350,520); this.spawnFlyingEnemy(550,250); this.spawnFlyingEnemy(700,150);
+
+
+    // Tween coins to float
+
 
     this.coins.children.iterate(c => {
 
+
       this.tweens.add({
+
 
         targets: c,
 
+
         y: c.y - 10,
+
 
         duration: 800,
 
+
         yoyo: true,
+
 
         repeat: -1,
 
+
         ease: 'Sine.easeInOut'
 
+
       });
+
 
     });
 
 
 
+
+
     // Enemies
+
 
     this.spawnEnemy(350,520); 
 
+
     this.spawnFlyingEnemy(550,250); 
+
 
     this.spawnFlyingEnemy(700,150);
 
 
 
     // Boss
+
+
+    this.boss=this.physics.add.sprite(1400,400,'boss'); 
+
 
     this.boss = this.physics.add.sprite(1400,400,'boss'); 
 
@@ -537,15 +520,16 @@ class Level2 extends BaseLevel {
 
     this.physics.add.collider(this.player,this.boss,()=>{ this.player.damage(); });
 
-
-
-    // Boss simple movement
+@@ -201,13 +231,13 @@
 
     this.time.addEvent({
 
       delay:2000,
 
       callback:()=>{ 
+
+
+        // if velocity is 0, start moving left; otherwise invert direction
 
         const vx = (this.boss.body.velocity.x === 0) ? -100 : -this.boss.body.velocity.x;
 
@@ -561,23 +545,21 @@ class Level2 extends BaseLevel {
 
 
 
+
   update(){ 
 
     super.update(); 
 
     if(this.player.x>1500){
 
-      this.add.text(300,250,'You Win!',{fontSize:'48px',fill:'#fff'});
-
-      this.player.setVelocity(0,0);
-
-      this.scene.pause();
-
-    }
+@@ -218,25 +248,26 @@
 
   }
 
 }
+
+
+
 
 
 
