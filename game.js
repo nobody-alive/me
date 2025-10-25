@@ -1,5 +1,3 @@
-// ---- Phaser 3 Adventure - Rectangle Version ----
-
 // ---- Boot Scene ----
 class BootScene extends Phaser.Scene {
     constructor() { super('Boot'); }
@@ -51,13 +49,11 @@ class BaseLevel extends Phaser.Scene {
     constructor(key) { super(key); }
 
     create() {
-        // Groups
         this.platforms = this.physics.add.staticGroup();
         this.movingPlatforms = this.physics.add.group({ allowGravity: false, immovable: true });
         this.coins = this.physics.add.staticGroup();
         this.enemies = this.physics.add.group({ allowGravity: true, collideWorldBounds: true });
 
-        // Player
         this.player = new Player(this, 100, 500);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.dashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
@@ -87,10 +83,9 @@ class BaseLevel extends Phaser.Scene {
         this.cameras.main.setBounds(0, 0, 1600, 600);
     }
 
-    // ---- Spawn Objects ----
     spawnPlatform(x, y, width = 100, height = 20, color = 0x00ff00) {
         const plat = this.add.rectangle(x, y, width, height, color);
-        this.physics.add.existing(plat, true); // static
+        this.physics.add.existing(plat, true);
         this.platforms.add(plat);
         return plat;
     }
@@ -108,11 +103,19 @@ class BaseLevel extends Phaser.Scene {
     spawnCoin(x, y, size = 20, color = 0xffff00) {
         const coin = this.add.rectangle(x, y, size, size, color);
         this.coins.add(coin);
-        this.physics.add.existing(coin, true); // static body
+        this.physics.add.existing(coin, true); // static
         this.physics.add.overlap(this.player, coin, (p, c) => {
             c.destroy();
             this.score += 10;
             this.scoreText.setText('Score: ' + this.score);
+
+            // Move to next level if no coins left
+            if (this.coins.countActive(true) === 0) {
+                this.time.delayedCall(500, () => {
+                    const nextLevel = this.scene.key === 'Level1' ? 'Level2' : 'Level1';
+                    this.scene.start(nextLevel);
+                });
+            }
         });
         return coin;
     }
@@ -122,7 +125,7 @@ class BaseLevel extends Phaser.Scene {
         this.physics.add.existing(enemy);
         enemy.body.setCollideWorldBounds(true);
         enemy.body.setBounce(1);
-        enemy.speed = 100; // movement speed
+        enemy.speed = 100;
         this.enemies.add(enemy);
         return enemy;
     }
@@ -131,11 +134,13 @@ class BaseLevel extends Phaser.Scene {
         this.player.update(this.cursors);
         this.healthText.setText('Health: ' + this.player.health);
 
-        // Move enemies toward player
+        // Move enemies toward player (X and Y)
         this.enemies.children.iterate(e => {
             if (e.active && this.player.active) {
-                const dir = this.player.x > e.x ? 1 : -1;
-                e.body.setVelocityX(dir * e.speed);
+                const dirX = this.player.x > e.x ? 1 : -1;
+                const dirY = this.player.y > e.y ? 1 : -1;
+                e.body.setVelocityX(dirX * e.speed);
+                e.body.setVelocityY(dirY * e.speed * 0.5); // slower vertically
             }
         });
 
@@ -189,6 +194,7 @@ class Level2 extends BaseLevel {
 // ---- Game Over ----
 class GameOverScene extends Phaser.Scene {
     constructor() { super('GameOverScene'); }
+
     create() {
         this.add.text(250, 250, 'Game Over', { fontSize: '48px', fill: '#f00' });
         this.add.text(200, 320, 'Press SPACE to restart', { fontSize: '24px', fill: '#fff' });
