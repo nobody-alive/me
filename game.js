@@ -1,4 +1,4 @@
-// Phaser 3 Adventure - Rectangle Version (Fixed)
+// Phaser 3 Adventure - Rectangle Version
 
 // ---- Boot Scene ----
 class BootScene extends Phaser.Scene {
@@ -28,9 +28,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
 
   damage() {
     this.health--;
-    if (this.health <= 0) {
-      this.scene.scene.start('GameOverScene'); // fixed
-    }
+    if (this.health <= 0) this.scene.start('GameOverScene');
   }
 
   update(cursors) {
@@ -64,13 +62,13 @@ class BaseLevel extends Phaser.Scene {
     this.dashKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
     this.dashCooldown = 500;
 
-    // Colliders
+    // Collisions
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.player, this.movingPlatforms);
     this.physics.add.collider(this.enemies, this.platforms);
     this.physics.add.collider(this.enemies, this.movingPlatforms);
 
-    // Score
+    // Score / Health
     this.score = 0;
     this.scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '24px', fill: '#fff' });
     this.healthText = this.add.text(16, 50, 'Health: ' + this.player.health, { fontSize: '24px', fill: '#fff' });
@@ -91,7 +89,7 @@ class BaseLevel extends Phaser.Scene {
 
   spawnPlatform(x, y, width = 100, height = 20, color = 0x00ff00) {
     const plat = this.add.rectangle(x, y, width, height, color);
-    this.physics.add.existing(plat, true);
+    this.physics.add.existing(plat, true); // static
     this.platforms.add(plat);
     return plat;
   }
@@ -111,17 +109,16 @@ class BaseLevel extends Phaser.Scene {
     this.physics.add.existing(coin);
     coin.body.setAllowGravity(false);
     coin.body.setImmovable(true);
-    coin.body.setSize(size, size);
     this.coins.add(coin);
     return coin;
   }
 
-  spawnEnemy(x, y, width = 32, height = 32, color = 0xff0000) {
+  spawnEnemy(x, y, width = 32, height = 32, color = 0xff0000, speed = 50) {
     const enemy = this.add.rectangle(x, y, width, height, color);
     this.physics.add.existing(enemy);
     enemy.body.setCollideWorldBounds(true);
     enemy.body.setBounce(1);
-    enemy.body.setVelocityX(50);
+    enemy.body.setVelocityX(speed);
     this.enemies.add(enemy);
     return enemy;
   }
@@ -129,6 +126,16 @@ class BaseLevel extends Phaser.Scene {
   update() {
     this.player.update(this.cursors);
     this.healthText.setText('Health: ' + this.player.health);
+
+    // Move moving platforms
+    this.movingPlatforms.children.iterate(p => {
+      if (p.x >= 700 || p.x <= 100) p.body.velocity.x *= -1;
+    });
+
+    // Move enemies
+    this.enemies.children.iterate(e => {
+      if (e.x >= 750 || e.x <= 50) e.body.velocity.x *= -1;
+    });
   }
 }
 
@@ -138,30 +145,17 @@ class Level1 extends BaseLevel {
 
   create() {
     super.create();
-    // Floor and platforms
-    this.spawnPlatform(400, 580, 800, 40);
+    this.spawnPlatform(400, 580, 800, 40); // floor
     this.spawnPlatform(200, 450, 100, 20);
     this.spawnPlatform(600, 350, 150, 20);
     this.spawnMovingPlatform(400, 250, 50);
 
-    // Coins
     this.spawnCoin(150, 300);
     this.spawnCoin(300, 200);
     this.spawnCoin(500, 150);
 
-    // Enemies
     this.spawnEnemy(400, 520);
     this.spawnEnemy(600, 400);
-  }
-
-  update() {
-    super.update();
-    this.movingPlatforms.children.iterate(p => {
-      if (p.x >= 700 || p.x <= 100) p.body.velocity.x *= -1;
-    });
-    this.enemies.children.iterate(e => {
-      if (e.x >= 780 || e.x <= 20) e.body.velocity.x *= -1;
-    });
   }
 }
 
@@ -171,7 +165,7 @@ class Level2 extends BaseLevel {
 
   create() {
     super.create();
-    this.spawnPlatform(400, 580, 800, 40);
+    this.spawnPlatform(400, 580, 800, 40); // floor
     this.spawnPlatform(500, 400, 100, 20);
     this.spawnPlatform(300, 300, 100, 20);
     this.spawnMovingPlatform(600, 350, -50);
@@ -182,16 +176,6 @@ class Level2 extends BaseLevel {
 
     this.spawnEnemy(350, 520);
     this.spawnEnemy(550, 250);
-  }
-
-  update() {
-    super.update();
-    this.movingPlatforms.children.iterate(p => {
-      if (p.x >= 700 || p.x <= 100) p.body.velocity.x *= -1;
-    });
-    this.enemies.children.iterate(e => {
-      if (e.x >= 780 || e.x <= 20) e.body.velocity.x *= -1;
-    });
   }
 }
 
